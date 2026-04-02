@@ -2,12 +2,12 @@ name: Admin Playwright Tests
  
 on: 
   push: 
-    branches: [admin, dev, main] 
+    branches: [main, dev, admin] 
     paths: 
       - 'pages/admin/**' 
       - 'tests/admin/**' 
   pull_request: 
-    branches: [main] 
+    branches: [main, dev] 
     paths: 
       - 'pages/admin/**' 
       - 'tests/admin/**' 
