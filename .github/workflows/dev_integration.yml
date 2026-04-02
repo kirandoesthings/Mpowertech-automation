@@ -1,19 +1,11 @@
-name: Faculty/HOD Playwright Tests 
+name: Dev Integration Tests 
  
 on: 
-  push: 
-    branches: [main, dev] 
-    paths: 
-      - 'pages/faculty_hod/**' 
-      - 'tests/faculty_hod/**' 
   pull_request: 
-    branches: [dev, main] 
-    paths: 
-      - 'pages/faculty_hod/**' 
-      - 'tests/faculty_hod/**' 
+    branches: [dev] 
  
 jobs: 
-  test: 
+  integration-tests: 
     runs-on: ubuntu-latest 
  
     steps: 
@@ -30,15 +22,15 @@ jobs:
           pip install -r requirements.txt 
           playwright install chromium 
  
-      - name: Run Faculty/HOD tests 
+      - name: Run All Tests 
         env: 
           MUDU_USERNAME: ${{ secrets.MUDU_USERNAME }} 
           MUDU_PASSWORD: ${{ secrets.MUDU_PASSWORD }} 
-        run: pytest tests/faculty_hod/ -v -s --tb=short 
+        run: pytest tests/ -v -s --tb=short 
  
       - name: Upload test report 
         if: always() 
         uses: actions/upload-artifact@v3 
         with: 
-          name: faculty-hod-test-results 
+          name: integration-test-results 
           path: reports/ 
