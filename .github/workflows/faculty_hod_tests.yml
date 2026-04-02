@@ -1,0 +1,41 @@
+name: Faculty/HOD Playwright Tests 
+ 
+on: 
+  push: 
+    branches: [main, dev] 
+    paths: 
+      - 'pages/faculty_hod/**' 
+      - 'tests/faculty_hod/**' 
+  pull_request: 
+    branches: [main] 
+    paths: 
+      - 'pages/faculty_hod/**' 
+      - 'tests/faculty_hod/**' 
+ 
+jobs: 
+  test: 
+    runs-on: ubuntu-latest 
+ 
+    steps: 
+      - name: Checkout code 
+        uses: actions/checkout@v3 
+ 
+      - name: Set up Python 
+        uses: actions/setup-python@v4 
+        with: 
+          python-version: "3.11" 
+ 
+      - name: Install dependencies 
+        run: | 
+          pip install -r requirements.txt 
+          playwright install chromium 
+ 
+      - name: Run Faculty/HOD tests 
+        run: pytest tests/faculty_hod/ -v -s --tb=short 
+ 
+      - name: Upload test report 
+        if: always() 
+        uses: actions/upload-artifact@v3 
+        with: 
+          name: faculty-hod-test-results 
+          path: reports/ 
