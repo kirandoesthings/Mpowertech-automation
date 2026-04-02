@@ -31,6 +31,9 @@ jobs:
           playwright install chromium 
  
       - name: Run Faculty/HOD tests 
+        env: 
+          MUDU_USERNAME: ${{ secrets.MUDU_USERNAME }} 
+          MUDU_PASSWORD: ${{ secrets.MUDU_PASSWORD }} 
         run: pytest tests/faculty_hod/ -v -s --tb=short 
  
       - name: Upload test report 

@@ -1,0 +1,46 @@
+name: Student Tests
+
+on:
+  push:
+    branches: [student, dev, main]
+    paths:
+      - 'tests/student/**'
+      - 'pages/student/**'
+      - 'conftest.py'
+  pull_request:
+    branches: [dev, main]
+    paths:
+      - 'tests/student/**'
+      - 'pages/student/**'
+      - 'conftest.py'
+
+jobs:
+  student-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          playwright install chromium
+
+      - name: Run Student tests 
+        env: 
+          MUDU_USERNAME: ${{ secrets.MUDU_USERNAME }} 
+          MUDU_PASSWORD: ${{ secrets.MUDU_PASSWORD }} 
+        run: pytest tests/student/ -v -s --tb=short
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: student-test-results
+          path: reports/
