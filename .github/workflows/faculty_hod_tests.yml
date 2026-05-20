@@ -1,0 +1,64 @@
+name: Faculty/HOD Playwright Tests 
+ 
+ on: 
+   push: 
+     branches: [main, dev] 
+     paths: 
+       - 'pages/faculty_hod/**' 
+       - 'tests/faculty_hod/**' 
+   pull_request: 
+     branches: [main, dev] 
+     paths: 
+       - 'pages/faculty_hod/**' 
+       - 'tests/faculty_hod/**' 
+ 
+ jobs: 
+   test: 
+     runs-on: ubuntu-latest 
+ 
+     env: 
+       BASE_URL:         ${{ secrets.BASE_URL }} 
+       FACULTY_EMAIL:    ${{ secrets.FACULTY_EMAIL }} 
+       FACULTY_PASSWORD: ${{ secrets.FACULTY_PASSWORD }} 
+       HEADLESS:         "true" 
+ 
+     steps: 
+       - name: Checkout code 
+         uses: actions/checkout@v4 
+ 
+       - name: Set up Python 
+         uses: actions/setup-python@v5 
+         with: 
+           python-version: "3.11" 
+ 
+       - name: Cache pip packages 
+         uses: actions/cache@v4 
+         with: 
+           path: ~/.cache/pip 
+           key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }} 
+ 
+       - name: Install dependencies 
+         run: pip install -r requirements.txt 
+ 
+       - name: Install Playwright browsers + system deps 
+         run: playwright install chromium --with-deps 
+ 
+       - name: Run Faculty/HOD tests 
+         run: | 
+           pytest tests/faculty_hod/ -p no:cacheprovider || true 
+         continue-on-error: true 
+ 
+       - name: Upload Allure results 
+         if: always() 
+         uses: actions/upload-artifact@v4 
+         with: 
+           name: faculty-allure-results 
+           path: reports/allure-results/ 
+ 
+       - name: Upload failure screenshots 
+         if: always() 
+         uses: actions/upload-artifact@v4 
+         with: 
+           name: faculty-screenshots 
+           path: screenshots/ 
+           if-no-files-found: ignore

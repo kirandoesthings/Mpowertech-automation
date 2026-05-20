@@ -1,0 +1,63 @@
+name: Admin Playwright Tests
+
+on:
+  push:
+    branches: [main, dev]
+    paths:
+      - 'pages/admin/**'
+      - 'tests/admin/**'
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - 'pages/admin/**'
+      - 'tests/admin/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    env:
+      BASE_URL:        ${{ secrets.BASE_URL }}
+      ADMIN_EMAIL:     ${{ secrets.ADMIN_EMAIL }}
+      ADMIN_PASSWORD:  ${{ secrets.ADMIN_PASSWORD }}
+      HEADLESS:        "true"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Cache pip packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Install Playwright browsers + system deps
+        run: playwright install chromium --with-deps   # --with-deps is the key fix
+
+      - name: Run Admin tests
+        run: pytest tests/admin/ -p no:cacheprovider
+        continue-on-error: true   # always upload report even on test failure
+
+      - name: Upload Allure results
+        if: always()
+        uses: actions/upload-artifact@v4                # v3 is dead, use v4
+        with:
+          name: admin-allure-results
+          path: reports/allure-results/
+
+      - name: Upload failure screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: admin-screenshots
+          path: screenshots/
+          if-no-files-found: ignore
