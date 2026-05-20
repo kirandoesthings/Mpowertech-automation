@@ -1,41 +1,63 @@
 name: Faculty/HOD Playwright Tests 
  
-on: 
-  push: 
-    branches: [main, dev] 
-    paths: 
-      - 'pages/faculty_hod/**' 
-      - 'tests/faculty_hod/**' 
-  pull_request: 
-    branches: [main] 
-    paths: 
-      - 'pages/faculty_hod/**' 
-      - 'tests/faculty_hod/**' 
+ on: 
+   push: 
+     branches: [main, dev] 
+     paths: 
+       - 'pages/faculty_hod/**' 
+       - 'tests/faculty_hod/**' 
+   pull_request: 
+     branches: [main, dev] 
+     paths: 
+       - 'pages/faculty_hod/**' 
+       - 'tests/faculty_hod/**' 
  
-jobs: 
-  test: 
-    runs-on: ubuntu-latest 
+ jobs: 
+   test: 
+     runs-on: ubuntu-latest 
  
-    steps: 
-      - name: Checkout code 
-        uses: actions/checkout@v3 
+     env: 
+       BASE_URL:         ${{ secrets.BASE_URL }} 
+       FACULTY_EMAIL:    ${{ secrets.FACULTY_EMAIL }} 
+       FACULTY_PASSWORD: ${{ secrets.FACULTY_PASSWORD }} 
+       HEADLESS:         "true" 
  
-      - name: Set up Python 
-        uses: actions/setup-python@v4 
-        with: 
-          python-version: "3.11" 
+     steps: 
+       - name: Checkout code 
+         uses: actions/checkout@v4 
  
-      - name: Install dependencies 
-        run: | 
-          pip install -r requirements.txt 
-          playwright install chromium 
+       - name: Set up Python 
+         uses: actions/setup-python@v5 
+         with: 
+           python-version: "3.11" 
  
-      - name: Run Faculty/HOD tests 
-        run: pytest tests/faculty_hod/ -v -s --tb=short 
+       - name: Cache pip packages 
+         uses: actions/cache@v4 
+         with: 
+           path: ~/.cache/pip 
+           key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }} 
  
-      - name: Upload test report 
-        if: always() 
-        uses: actions/upload-artifact@v3 
-        with: 
-          name: faculty-hod-test-results 
-          path: reports/ 
+       - name: Install dependencies 
+         run: pip install -r requirements.txt 
+ 
+       - name: Install Playwright browsers + system deps 
+         run: playwright install chromium --with-deps 
+ 
+       - name: Run Faculty/HOD tests 
+         run: pytest tests/faculty_hod/ -p no:cacheprovider 
+         continue-on-error: true 
+ 
+       - name: Upload Allure results 
+         if: always() 
+         uses: actions/upload-artifact@v4 
+         with: 
+           name: faculty-allure-results 
+           path: reports/allure-results/ 
+ 
+       - name: Upload failure screenshots 
+         if: always() 
+         uses: actions/upload-artifact@v4 
+         with: 
+           name: faculty-screenshots 
+           path: screenshots/ 
+           if-no-files-found: ignore

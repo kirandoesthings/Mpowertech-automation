@@ -47,7 +47,7 @@ def page(context, base_url):
     page.close()
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def base_url():
     return BASE_URL
 
@@ -60,11 +60,14 @@ def pytest_runtest_makereport(item, call):
 
     if report.when == "call" and report.failed:
         page = item.funcargs.get("page", None)
-        if page:
+        if page and not page.is_closed():
             screenshot_path = f"screenshots/{item.name}.png"
             os.makedirs("screenshots", exist_ok=True)
-            page.screenshot(path=screenshot_path)
-            logger.error(f"Screenshot saved: {screenshot_path}")
+            try:
+                page.screenshot(path=screenshot_path)
+                logger.error(f"Screenshot saved: {screenshot_path}")
+            except Exception as e:
+                logger.error(f"Failed to take screenshot: {e}")
 
 
 @pytest.fixture(autouse=True)
