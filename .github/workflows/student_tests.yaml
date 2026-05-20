@@ -1,0 +1,63 @@
+name: Student Playwright Tests
+
+on:
+  push:
+    branches: [main, dev]
+    paths:
+      - 'pages/student/**'
+      - 'tests/student/**'
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - 'pages/student/**'
+      - 'tests/student/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    env:
+      BASE_URL:          ${{ secrets.BASE_URL }}
+      STUDENT_EMAIL:     ${{ secrets.STUDENT_EMAIL }}
+      STUDENT_PASSWORD:  ${{ secrets.STUDENT_PASSWORD }}
+      HEADLESS:          "true"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Cache pip packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Install Playwright browsers + system deps
+        run: playwright install chromium --with-deps
+
+      - name: Run Student tests
+        run: pytest tests/student/ -p no:cacheprovider
+        continue-on-error: true
+
+      - name: Upload Allure results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: student-allure-results
+          path: reports/allure-results/
+
+      - name: Upload failure screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: student-screenshots
+          path: screenshots/
+          if-no-files-found: ignore
