@@ -1,16 +1,15 @@
-name: Faculty/HOD Playwright Tests
-
-on:
-  push:
-    branches: [main, dev]
-    paths:
-      - 'pages/faculty_hod/**'
-      - 'tests/faculty_hod/**'
-  pull_request:
-    branches: [main, dev]
-    paths:
-      - 'pages/faculty_hod/**'
-      - 'tests/faculty_hod/**'
+name: Faculty/HOD Playwright Tests 
+ 
+ on: 
+   push: 
+     paths: 
+       - 'pages/faculty_hod/**' 
+       - 'tests/faculty_hod/**' 
+ 
+   pull_request: 
+     paths: 
+       - 'pages/faculty_hod/**' 
+       - 'tests/faculty_hod/**'
 
 jobs:
   test:
